@@ -1,22 +1,72 @@
 ---
-title: "PA1_template.Rmd"
+title: "Reproducible Research Peer Assignment 1"
 author: "Damien Edwards"
 date: "February 2, 2015"
 output: html_document
 ---
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+This is an assignment that uses data from a personal activity monitoring device. The device collects data at 5 minute intervals through the day. The data consists of two months of data from an anonymous individual collected during the months of October and November,2012 and include the number of steps taken in 5 minute intervals each day.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+The variables included in this dataset are:
 
-```{r}
-summary(cars)
+1.steps: Number of steps taking in a 5-minute interval (missing values are coded as NA)
+
+2.date: The date on which the measurement was taken in YYYY-MM-DD format
+
+3.interval: Identifier for the 5-minute interval in which measurement was taken
+
+The dataset is stored in a comma-separated-value (CSV) file and there are a total of 17,568 observations in this dataset.
+
+### Loading and preprocessing the data
+
+The data is downloaded from the Course Website:
+
+https://class.coursera.org/repdata-011/human_grading/view/courses/973512/assessments/3/submissions
+
+The data is in zip file:
+
+repdata-data-activity.zip
+
+
+Below the data is read and the column names are shown.
+```{r, echo=TRUE}
+activity <- read.csv("activity.csv")
+head(activity,3)
+summary(activity)
+```
+Data for the date will be transformed later in the report.
+
+###What is mean total number of steps taken per day?
+
+Total Number of steps taken per day.
+```{r, echo=TRUE}
+ag_activity<-aggregate(steps ~ date, activity, sum)$steps
+hist(ag_activity, breaks = 6, col = "blue", main = "Frequency of Total Steps per day", xlab = "Steps per day")
 ```
 
-You can also embed plots, for example:
-
-```{r, echo=FALSE}
-plot(cars)
+The mean:
+```{r, echo=TRUE}
+mean_steps<-mean(ag_activity,na.rm = T)
+mean_steps
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+The median:
+```{r, echo=TRUE}
+median_steps<-median(ag_activity,na.rm = T)
+median_steps
+```
+
+###What is the average daily activity pattern?
+Time series Plot:
+
+```{r, echo=TRUE}
+ag2_activity<-aggregate(steps ~ interval, activity, mean)
+plot(ag2_activity$steps, type="l", main="Step Interval daily average", ylab="Number of Steps",xlab="Interval")
+```
+The 5 month interval with the largest number of steps is :
+
+```{r,echo=TRUE}
+interval_max<- which.max(ag2_activity$steps)
+interval_max
+```
+###Inputing missing values
