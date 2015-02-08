@@ -72,3 +72,61 @@ interval_max<- which.max(ag2_activity$steps)
 interval_max
 ```
 ###Inputing missing values
+The total number of missing rows is 2304
+```{r,echo=TRUE}
+sum(as.numeric(is.na(activity$steps)))
+```
+
+Devise a strategy for filling in all of the missing values of the dataset:
+
+(I will use the average value to replace the NAs in the dataset.)
+```{r,echo=TRUE}
+mean(activity$steps, na.rm=T)
+impute_activity <- activity
+impute_activity$steps[is.na(impute_activity$steps)] <- mean(impute_activity$steps, na.rm = T)
+colSums(is.na(impute_activity))
+```
+Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+```{r,echo=TRUE}
+library(reshape2)
+impute_steps<- tapply(impute_activity$steps, impute_activity$date, sum)
+impute_melt<- melt(impute_steps)
+names(impute_melt) <- c("Date", "Steps")
+head(impute_melt)
+```
+```{r,echo=TRUE}
+hist(impute_melt$Steps,breaks=30,col="red", main="Number of Steps per Day for Impute Data",xlab="Steps per Day")
+```
+Mean:
+```{r,echo=TRUE}
+mean(impute_melt$Steps, na.rm = T)
+```
+Median
+```{r,echo=TRUE}
+median(impute_melt$Steps, na.rm = T)
+```
+The mean and the median are the same as before. Adding the average for the NA values results in similar mean and median.
+
+##Are there differences in activity patterns between weekdays and weekends?
+
+Create a new factor varialbe with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day:
+``` {r,echo=TRUE}
+library(plyr)
+impute_activity$weekdays<-weekdays(as.Date(impute_activity$date))
+impute_activity$weeks[(impute_activity$weekdays == "Saturday" | impute_activity$weekdays == "Sunday")] <- "weekend"
+impute_activity$weeks[!(impute_activity$weekdays == "Saturday" | impute_activity$weekdays == "Sunday")] <- "weekdays"
+full_week <- ddply(impute_activity, c("interval", "weeks"), function(x) apply(x[1], 
+    2, mean))
+head(full_week)
+
+```
+The plot below shows the difference between the number of steps on the weekend and weekdays:
+
+```{r,echo=TRUE}
+library(lattice)
+xyplot(steps~interval|weeks,data=full_week,xlab="Interval", ylab="Steps",type="l",layout=c(1,2))
+```
+
+
+
+

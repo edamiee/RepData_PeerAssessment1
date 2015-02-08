@@ -110,3 +110,116 @@ interval_max
 ## [1] 104
 ```
 ###Inputing missing values
+The total number of missing rows is 2304
+
+```r
+sum(as.numeric(is.na(activity$steps)))
+```
+
+```
+## [1] 2304
+```
+
+Devise a strategy for filling in all of the missing values of the dataset:
+
+(I will use the average value to replace the NAs in the dataset.)
+
+```r
+mean(activity$steps, na.rm=T)
+```
+
+```
+## [1] 37.3826
+```
+
+```r
+impute_activity <- activity
+impute_activity$steps[is.na(impute_activity$steps)] <- mean(impute_activity$steps, na.rm = T)
+colSums(is.na(impute_activity))
+```
+
+```
+##    steps     date interval 
+##        0        0        0
+```
+Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+
+```r
+library(reshape2)
+impute_steps<- tapply(impute_activity$steps, impute_activity$date, sum)
+impute_melt<- melt(impute_steps)
+names(impute_melt) <- c("Date", "Steps")
+head(impute_melt)
+```
+
+```
+##         Date    Steps
+## 1 2012-10-01 10766.19
+## 2 2012-10-02   126.00
+## 3 2012-10-03 11352.00
+## 4 2012-10-04 12116.00
+## 5 2012-10-05 13294.00
+## 6 2012-10-06 15420.00
+```
+
+```r
+hist(impute_melt$Steps,breaks=30,col="red", main="Number of Steps per Day for Impute Data",xlab="Steps per Day")
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-10-1.png) 
+Mean:
+
+```r
+mean(impute_melt$Steps, na.rm = T)
+```
+
+```
+## [1] 10766.19
+```
+Median
+
+```r
+median(impute_melt$Steps, na.rm = T)
+```
+
+```
+## [1] 10766.19
+```
+The mean and the median are the same as before. Adding the average for the NA values results in similar mean and median.
+
+##Are there differences in activity patterns between weekdays and weekends?
+
+Create a new factor varialbe with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day:
+
+```r
+library(plyr)
+impute_activity$weekdays<-weekdays(as.Date(impute_activity$date))
+impute_activity$weeks[(impute_activity$weekdays == "Saturday" | impute_activity$weekdays == "Sunday")] <- "weekend"
+impute_activity$weeks[!(impute_activity$weekdays == "Saturday" | impute_activity$weekdays == "Sunday")] <- "weekdays"
+full_week <- ddply(impute_activity, c("interval", "weeks"), function(x) apply(x[1], 
+    2, mean))
+head(full_week)
+```
+
+```
+##   interval    weeks    steps
+## 1        0 weekdays 7.006569
+## 2        0  weekend 4.672825
+## 3        5 weekdays 5.384347
+## 4        5  weekend 4.672825
+## 5       10 weekdays 5.139902
+## 6       10  weekend 4.672825
+```
+The plot below shows the difference between the number of steps on the weekend and weekdays:
+
+
+```r
+library(lattice)
+xyplot(steps~interval|weeks,data=full_week,xlab="Interval", ylab="Steps",type="l",layout=c(1,2))
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-14-1.png) 
+
+
+
+
